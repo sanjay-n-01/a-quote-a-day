@@ -6,3 +6,5 @@
 
 > "As long as I live, There are infinite chances" — Luffy
 > — added by Meenz | about: Life itself gives endless opportunities 
+
+ADD YOUR QUOTES BELOW THIS LINE.
