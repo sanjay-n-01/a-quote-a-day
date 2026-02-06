@@ -1126,8 +1126,7 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
       <div class="q-about"  id="qAbout"></div>
     </div>
 
-    <!-- Reactions -->
-    <div class="reactions" id="reactions"></div>
+   
     <a id="commentLink"
    class="comment-btn"
    target="_blank"
@@ -1182,15 +1181,6 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
    ══════════════════════════════════════════════ */
 const QUOTES_URL = "https://raw.githubusercontent.com/AndrewVeda/a-quote-a-day/main/QUOTES.md";
 
-const REACTIONS = [
-  { key:'heart',  emoji:'❤️',  label:'Love' },
-  { key:'clap',   emoji:'👏',  label:'Clap' },
-  { key:'fire',   emoji:'🔥',  label:'Fire' },
-  { key:'wow',    emoji:'🤯',  label:'Mind-blown' },
-  { key:'save',   emoji:'🔖',  label:'Save' },
-  { key:'share',  emoji:'✨',  label:'Inspire' }
-];
-
 const THEMES = ['minimal','academia','cyber','brutalist','wellness','retro','glass','poster'];
 
 /* ══════════════════════════════════════════════
@@ -1201,12 +1191,7 @@ let idx      = 0;
 let current  = 'glass';
 // reactions: { [quoteIndex]: { heart: N, clap: N, … }, … }
 // userReacted: { [quoteIndex]: Set<key> }
-let reactionData = {};
-let userReacted  = {};
 
-/* ══════════════════════════════════════════════
-   INIT
-   ══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
   buildThemeBtns();
   buildReactionBtns();
