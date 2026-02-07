@@ -526,12 +526,9 @@ body.t-cyber .stage::after {
 
   /* Directory toggle → icon-only on mobile */
   .dir-toggle {
-    font-size: 0; letter-spacing: 0;
-    padding: 0;
-    min-width: 44px; min-height: 44px;
-    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    padding: 6px 12px;
   }
-  .dir-toggle::before { content: '⊞'; font-size: 20px; }
 
   /* theme swatches row */
   .theme-strip { gap: 2px; padding: 6px 0; }
@@ -602,7 +599,6 @@ body.t-cyber .stage::after {
 
 /* ── very small phones (320–374px) ── */
 @media (max-width: 374px) {
-  .topbar-title { display: none; }
   .theme-btn { width: 24px; height: 24px; }
   .card { padding: 22px 16px 18px; }
   .rxn { padding: 8px 9px; }
@@ -1023,20 +1019,6 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
   }
 
   /* 2. Fix Top Bar Crowding (Icon-only Directory button) */
-  .dir-toggle {
-    font-size: 0; /* Hide text "Directory" */
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .dir-toggle::after {
-    content: '⊞'; /* Icon visible */
-    font-size: 20px;
-    color: var(--gold);
-  }
 
   /* 3. Tame the Giant Card & Reactions */
   .card {
