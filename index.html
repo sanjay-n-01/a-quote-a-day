@@ -1597,34 +1597,35 @@ async function shareAsImage() {
   try {
     const q = quotes[idx];
 
-    // 1. Fill share card
+    // Fill share card
     document.getElementById('sc-quote').textContent =
       `“${q.quote}”`;
 
     document.getElementById('sc-author').textContent =
       `— ${q.author}`;
 
+    document.getElementById('sc-about').textContent =
+      q.about ? q.about : '';
+
     document.getElementById('sc-contrib').textContent =
       `Contributed by ${q.contributor}${q.department !== 'Unknown' ? ` (${q.department})` : ''}`;
 
     const node = document.getElementById('shareCard');
 
-    // 2. Render to canvas
+    // Render to canvas
     const canvas = await html2canvas(node, {
       scale: 2,
       backgroundColor: '#0f1629'
     });
 
-    // 3. Convert to blob
-    const blob = await new Promise(resolve =>
-      canvas.toBlob(resolve, 'image/png')
+    const blob = await new Promise(res =>
+      canvas.toBlob(res, 'image/png')
     );
 
-    if (!blob) throw new Error('Canvas export failed');
+    if (!blob) throw new Error('Image export failed');
 
     const file = new File([blob], 'a-quote-a-day.png', { type: 'image/png' });
 
-    // 4. Share or fallback
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: 'A Quote A Day' });
     } else {
@@ -1638,23 +1639,53 @@ async function shareAsImage() {
   }
 }
 
+
 </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <div id="shareCard" style="
+ <div id="shareCard" style="
   position: fixed;
   left: -9999px;
   top: 0;
-  width: 720px;
-  padding: 60px;
+  width: 1080px;
+  height: 1350px;
+  padding: 140px 120px;
   background: #0f1629;
   color: #e2e8f0;
-  font-family: 'Cormorant Garamond', serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   text-align: center;
+  font-family: 'Cormorant Garamond', serif;
 ">
-  <div id="sc-quote" style="font-size:42px; line-height:1.4;"></div>
-  <div id="sc-author" style="margin-top:30px; font-size:18px; letter-spacing:2px;"></div>
-  <div id="sc-contrib" style="margin-top:20px; font-size:14px; opacity:0.7;"></div>
+  <div id="sc-quote"
+       style="font-size:64px; line-height:1.35; font-weight:300;"></div>
+
+  <div id="sc-author"
+       style="margin-top:48px; font-size:22px; letter-spacing:3px; font-family:'Raleway',sans-serif; color:#60a5fa;">
+  </div>
+
+  <div id="sc-about"
+       style="margin-top:36px; font-size:30px; font-style:italic; opacity:0.75; line-height:1.4;">
+  </div>
+
+  <div id="sc-contrib"
+       style="margin-top:60px; font-size:20px; opacity:0.6; font-family:'Raleway',sans-serif;">
+  </div>
+
+  <div style="
+    position:absolute;
+    bottom:80px;
+    left:0;
+    right:0;
+    font-size:16px;
+    letter-spacing:2px;
+    opacity:0.35;
+    font-family:'Raleway',sans-serif;
+  ">
+    A Quote A Day
+  </div>
 </div>
+
 </body>
 </html>
