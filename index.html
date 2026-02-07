@@ -1074,6 +1074,26 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
     background: rgba(255,255,255,0.08); /* More visible tap target */
   }
 }
+.comment-btn {
+  display: inline-block;
+  margin: 18px auto 0;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.05);
+  transition: all 0.25s;
+}
+
+.comment-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
 
 </style>
 </head>
@@ -1106,8 +1126,14 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
       <div class="q-about"  id="qAbout"></div>
     </div>
 
-    <!-- Reactions -->
-    <div class="reactions" id="reactions"></div>
+   
+    <a id="commentLink"
+   class="comment-btn"
+   target="_blank"
+   rel="noopener">
+  💬 View / start discussion!
+</a>
+
 
     <!-- Nav -->
     <div class="nav-arrows">
@@ -1132,6 +1158,7 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
     <div class="dir-tabs">
       <button class="dir-tab active" data-tab="authors">Authors</button>
       <button class="dir-tab"        data-tab="contributors">Contributors</button>
+      <button class="dir-tab"        data-tab="departments">Departments</button>
     </div>
   </div>
 
@@ -1154,15 +1181,6 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
    ══════════════════════════════════════════════ */
 const QUOTES_URL = "https://raw.githubusercontent.com/AndrewVeda/a-quote-a-day/main/QUOTES.md";
 
-const REACTIONS = [
-  { key:'heart',  emoji:'❤️',  label:'Love' },
-  { key:'clap',   emoji:'👏',  label:'Clap' },
-  { key:'fire',   emoji:'🔥',  label:'Fire' },
-  { key:'wow',    emoji:'🤯',  label:'Mind-blown' },
-  { key:'save',   emoji:'🔖',  label:'Save' },
-  { key:'share',  emoji:'✨',  label:'Inspire' }
-];
-
 const THEMES = ['minimal','academia','cyber','brutalist','wellness','retro','glass','poster'];
 
 /* ══════════════════════════════════════════════
@@ -1173,15 +1191,10 @@ let idx      = 0;
 let current  = 'glass';
 // reactions: { [quoteIndex]: { heart: N, clap: N, … }, … }
 // userReacted: { [quoteIndex]: Set<key> }
-let reactionData = {};
-let userReacted  = {};
 
-/* ══════════════════════════════════════════════
-   INIT
-   ══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
   buildThemeBtns();
-  buildReactionBtns();
+
   await loadState();        // async now — theme + index
   await fetchQuotes();      // also calls hydrateAllReactions() at the end
   render();
@@ -1209,10 +1222,17 @@ async function fetchQuotes() {
         const [, rest]       = metaLine.split('added by');
         const [contrib, ab]  = (rest || '').split('| about:');
 
+        // extract department from contributor (e.g., "Harini (CSE)" → name: "Harini", dept: "CSE")
+        const contribStr = (contrib || '').trim() || 'A student';
+        const deptMatch  = contribStr.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+        const contribName = deptMatch ? deptMatch[1].trim() : contribStr;
+        const department  = deptMatch ? deptMatch[2].trim() : 'Unknown';
+
         quotes.push({
           quote:       qPart.replace(/[""]/g, '').trim(),
           author:      aPart.trim() || 'Unknown',
-          contributor: (contrib || '').trim() || 'A student',
+          contributor: contribName,
+          department:  department,
           about:       (ab || '').trim()
         });
       }
@@ -1221,8 +1241,7 @@ async function fetchQuotes() {
     buildDots();
     buildDirectoryIndex();
     // pull every shared reaction key into memory so the UI is warm on load
-    await hydrateAllReactions();
-
+   
   } catch(e) {
     document.getElementById('qText').textContent = 'Could not load quotes — check your connection.';
     console.error(e);
@@ -1245,12 +1264,24 @@ function render(animate = false) {
 
   document.getElementById('qText').textContent   = `\u201C${q.quote}\u201D`;
   document.getElementById('qAuthor').textContent  = `— ${q.author}`;
-  document.getElementById('qContrib').textContent = `🏅 Contributed by ${q.contributor}`;
+  
+  // Show department in parentheses if it exists
+  const contribText = q.department && q.department !== 'Unknown' 
+    ? `🏅 Contributed by ${q.contributor} (${q.department})`
+    : `🏅 Contributed by ${q.contributor}`;
+  document.getElementById('qContrib').textContent = contribText;
+  
   document.getElementById('qAbout').textContent   = q.about || '';
   document.getElementById('counter').textContent  = `${idx + 1} / ${quotes.length}`;
 
   updateDots();
-  renderReactionCounts();
+  
+ const commentLink = document.getElementById('commentLink');
+
+  commentLink.href =
+  `https://github.com/AndrewVeda/a-quote-a-day/discussions?discussions_q=Quote+%23${idx+1}`;
+
+  
 }
 
 /* ══════════════════════════════════════════════
@@ -1296,119 +1327,7 @@ function updateDots() {
    ══════════════════════════════════════════════ */
 
 /* key helpers ─────────────────────────────────── */
-function sharedKey(i) { return `qd-rxn:${i}`; }          // shared counters per quote
-const   USER_KEY      = 'qd-my-rxns';                     // personal: which ones I've tapped
 
-/* hydrate ─────────────────────────────────────── */
-// Pull every shared reaction blob that already exists into the in-memory cache.
-// We list all keys with our prefix, then read them in one tight loop.
-async function hydrateAllReactions() {
-  try {
-    const listing = await window.storage.list('qd-rxn:', true); // shared = true
-    if (listing && listing.keys) {
-      for (const k of listing.keys) {
-        try {
-          const row = await window.storage.get(k, true);
-          if (row) {
-            const i = k.replace('qd-rxn:', '');
-            reactionData[i] = JSON.parse(row.value);
-          }
-        } catch(_) { /* key may have vanished */ }
-      }
-    }
-  } catch(_) { /* storage not yet ready */ }
-
-  // also load the user's own toggle-set (personal, not shared)
-  try {
-    const me = await window.storage.get(USER_KEY, false);
-    if (me) {
-      const raw = JSON.parse(me.value);
-      userReacted = {};
-      Object.entries(raw).forEach(([k, v]) => { userReacted[k] = new Set(v); });
-    }
-  } catch(_) { /* first visit */ }
-}
-
-/* build DOM ───────────────────────────────────── */
-function buildReactionBtns() {
-  const wrap = document.getElementById('reactions');
-  REACTIONS.forEach(r => {
-    const btn = document.createElement('div');
-    btn.className = 'rxn';
-    btn.id = 'rxn-' + r.key;
-    btn.innerHTML = `<span class="rxn-icon">${r.emoji}</span><span class="rxn-count">0</span>`;
-    btn.onclick = () => toggleReaction(r.key);
-    wrap.appendChild(btn);
-  });
-}
-
-/* toggle ──────────────────────────────────────── */
-async function toggleReaction(key) {
-  // ── 1. optimistic local update ──
-  if (!reactionData[idx])  reactionData[idx]  = {};
-  if (!userReacted[idx])   userReacted[idx]   = new Set();
-
-  const adding = !userReacted[idx].has(key);
-  if (adding) {
-    userReacted[idx].add(key);
-    reactionData[idx][key] = (reactionData[idx][key] || 0) + 1;
-  } else {
-    userReacted[idx].delete(key);
-    reactionData[idx][key] = Math.max(0, (reactionData[idx][key] || 1) - 1);
-  }
-
-  // pop animation
-  const btn  = document.getElementById('rxn-' + key);
-  const icon = btn.querySelector('.rxn-icon');
-  icon.classList.remove('pop');
-  void icon.offsetWidth;
-  icon.classList.add('pop');
-
-  renderReactionCounts();
-
-  // ── 2. persist shared counters ──
-  try {
-    // re-read so we don't clobber a concurrent writer
-    let live = {};
-    try {
-      const row = await window.storage.get(sharedKey(idx), true);
-      if (row) live = JSON.parse(row.value);
-    } catch(_) { /* key doesn't exist yet */ }
-
-    // apply our delta on top of the live value
-    live[key] = (live[key] || 0) + (adding ? 1 : -1);
-    if (live[key] < 0) live[key] = 0;
-
-    await window.storage.set(sharedKey(idx), JSON.stringify(live), true);
-
-    // write back the authoritative numbers so our UI stays in sync
-    reactionData[idx] = live;
-    renderReactionCounts();
-  } catch(e) { console.warn('shared write failed', e); }
-
-  // ── 3. persist personal toggle-set ──
-  try {
-    const serialised = {};
-    Object.entries(userReacted).forEach(([k, s]) => { serialised[k] = [...s]; });
-    await window.storage.set(USER_KEY, JSON.stringify(serialised), false);
-  } catch(e) { console.warn('personal write failed', e); }
-}
-
-/* render counts from cache ────────────────────── */
-function renderReactionCounts() {
-  const data = reactionData[idx] || {};
-  const user = userReacted[idx]  || new Set();
-  REACTIONS.forEach(r => {
-    const btn   = document.getElementById('rxn-' + r.key);
-    const count = btn.querySelector('.rxn-count');
-    count.textContent = data[r.key] || 0;
-    btn.classList.toggle('active', user.has(r.key));
-  });
-}
-
-/* ══════════════════════════════════════════════
-   THEMES
-   ══════════════════════════════════════════════ */
 function buildThemeBtns() {
   const strip = document.getElementById('themeBtns');
   THEMES.forEach(t => {
@@ -1456,18 +1375,20 @@ async function loadState() {
    DIRECTORY
    ══════════════════════════════════════════════ */
 
-let dirIndex     = { authors: {}, contributors: {} }; // name → [quoteIdx, …]
+let dirIndex     = { authors: {}, contributors: {}, departments: {} }; // name → [quoteIdx, …]
 let dirTab       = 'authors';   // current tab
 let dirExpanded  = null;        // currently expanded row key (or null)
 
 /* ── build index once after quotes are loaded ── */
 function buildDirectoryIndex() {
-  dirIndex = { authors: {}, contributors: {} };
+  dirIndex = { authors: {}, contributors: {}, departments: {} };
   quotes.forEach((q, i) => {
     const a = q.author;
     const c = q.contributor;
+    const d = q.department;
     (dirIndex.authors[a]       = dirIndex.authors[a]       || []).push(i);
     (dirIndex.contributors[c]  = dirIndex.contributors[c]  || []).push(i);
+    (dirIndex.departments[d]   = dirIndex.departments[d]   || []).push(i);
   });
 }
 
@@ -1564,9 +1485,14 @@ function renderDirList() {
       card.className = 'dir-quote';
 
       // label depends on which tab we're in
-      const metaLabel = dirTab === 'authors'
-        ? `contributed by ${q.contributor}`
-        : `— ${q.author}`;
+      let metaLabel;
+      if (dirTab === 'authors') {
+        metaLabel = `contributed by ${q.contributor}${q.department && q.department !== 'Unknown' ? ` (${q.department})` : ''}`;
+      } else if (dirTab === 'contributors') {
+        metaLabel = `— ${q.author}`;
+      } else { // departments tab
+        metaLabel = `${q.contributor} · — ${q.author}`;
+      }
 
       card.innerHTML = `
         <div class="dir-quote-text">\u201C${escHtml(q.quote)}\u201D</div>
@@ -1626,9 +1552,9 @@ function escHtml(s) {
 })();
 
 /* ══════════════════════════════════════════════
-   AUTO-ADVANCE (30 s)
+   AUTO-ADVANCE (3 s)
    ══════════════════════════════════════════════ */
-setInterval(() => go(1), 30000);
+setInterval(() => go(1), 3000);
 </script>
 </body>
 </html>
