@@ -526,12 +526,9 @@ body.t-cyber .stage::after {
 
   /* Directory toggle → icon-only on mobile */
   .dir-toggle {
-    font-size: 0; letter-spacing: 0;
-    padding: 0;
-    min-width: 44px; min-height: 44px;
-    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    padding: 6px 12px;
   }
-  .dir-toggle::before { content: '⊞'; font-size: 20px; }
 
   /* theme swatches row */
   .theme-strip { gap: 2px; padding: 6px 0; }
@@ -602,7 +599,6 @@ body.t-cyber .stage::after {
 
 /* ── very small phones (320–374px) ── */
 @media (max-width: 374px) {
-  .topbar-title { display: none; }
   .theme-btn { width: 24px; height: 24px; }
   .card { padding: 22px 16px 18px; }
   .rxn { padding: 8px 9px; }
@@ -1023,20 +1019,6 @@ body.t-brutalist .dir-row-avatar { border-radius: 4px; }
   }
 
   /* 2. Fix Top Bar Crowding (Icon-only Directory button) */
-  .dir-toggle {
-    font-size: 0; /* Hide text "Directory" */
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .dir-toggle::after {
-    content: '⊞'; /* Icon visible */
-    font-size: 20px;
-    color: var(--gold);
-  }
 
   /* 3. Tame the Giant Card & Reactions */
   .card {
@@ -1128,8 +1110,39 @@ body.t-wellness {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+/* ─── QUICK DIRECTORY TABS ─── */
+.quick-tabs {
+  display: flex;
+  gap: 6px;
+}
 
+.quick-tab {
+  font-family: 'Raleway', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-dim);
+  transition: all 0.2s;
+}
 
+.quick-tab:hover {
+  background: rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.quick-tab.active {
+  background: var(--gold);
+  color: #0a0a0a;
+  border-color: var(--gold);
+}
+
+#sc-quote { word-break: break-word; }
 </style>
 </head>
 <body class="t-glass">
@@ -1138,14 +1151,21 @@ body.t-wellness {
 <!-- ─── TOP BAR ─── -->
 <div class="shell">
 <header class="topbar">
-  <div class="topbar-left">
+ <div class="topbar-left" style="flex-direction:column; align-items:flex-start; gap:6px;">
+  <div style="display:flex; align-items:center; gap:10px;">
     <span class="topbar-title">A Quote A Day</span>
     <span class="topbar-counter" id="counter">— / —</span>
   </div>
-  <div style="display:flex;align-items:center;gap:14px;">
-    <button class="dir-toggle" id="dirToggle">⊞ Directory</button>
-    <div class="theme-strip" id="themeBtns"></div>
+
+  <!-- Quick directory buttons -->
+  <div class="quick-tabs">
+    <button class="quick-tab" data-tab="authors">Authors</button>
+    <button class="quick-tab" data-tab="contributors">Contributors</button>
+    <button class="quick-tab" data-tab="departments">Departments</button>
   </div>
+</div>
+
+
 </header>
 
 <!-- ─── STAGE ─── -->
@@ -1170,11 +1190,11 @@ body.t-wellness {
 </a>
     
 <a class="comment-btn"
-   href="https://github.com/AndrewVeda/a-quote-a-day/edit/main/QUOTES.md"
-   target="_blank"
-   rel="noopener">
+   href="https://github.com/AndrewVeda/a-quote-a-day/new/main/quotes"
+   target="_blank">
 ✏️ Add your quote
 </a>
+
 <button class="comment-btn" onclick="shareAsImage()">
 📸 Share as image
 </button>
@@ -1184,6 +1204,11 @@ body.t-wellness {
     <div class="nav-arrows">
       <button class="nav-btn" id="prevBtn">←</button>
       <button class="nav-btn" id="nextBtn">→</button>
+    </div>
+
+    <!-- Theme Selector -->
+    <div style="display:flex; justify-content:center; margin-top:20px;">
+      <div class="theme-strip" id="themeBtns"></div>
     </div>
 
     <!-- Dots -->
@@ -1224,7 +1249,10 @@ body.t-wellness {
 /* ══════════════════════════════════════════════
    CONFIG
    ══════════════════════════════════════════════ */
-const QUOTES_URL = "https://raw.githubusercontent.com/AndrewVeda/a-quote-a-day/main/QUOTES.md";
+const REPO_OWNER = "AndrewVeda";
+const REPO_NAME  = "a-quote-a-day";
+const QUOTES_DIR = "quotes";
+
 
 const THEMES = ['minimal','academia','cyber','brutalist','wellness','retro','glass','poster'];
 
@@ -1250,47 +1278,49 @@ document.addEventListener('DOMContentLoaded', async () => {
    ══════════════════════════════════════════════ */
 async function fetchQuotes() {
   try {
-    const res  = await fetch(QUOTES_URL);
-    const text = await res.text();
-    const lines = text.split('\n');
+    // 1. List files in /quotes
+    const apiURL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${QUOTES_DIR}`;
+    const res = await fetch(apiURL);
+    const files = await res.json();
 
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].trim();
-      if (l.startsWith('> "') && lines[i+1] && lines[i+1].includes('added by')) {
-        const quoteLine = l.replace(/^>/, '').trim();
-        const metaLine  = lines[i+1].replace(/^>/, '').trim();
+    // 2. Filter only .md files
+    const mdFiles = files.filter(f => f.name.endsWith('.md'));
 
-        const dashIdx = quoteLine.lastIndexOf('—');
-        const qPart   = dashIdx > -1 ? quoteLine.slice(0, dashIdx) : quoteLine;
-        const aPart   = dashIdx > -1 ? quoteLine.slice(dashIdx + 1) : 'Unknown';
-
-        const [, rest]       = metaLine.split('added by');
-        const [contrib, ab]  = (rest || '').split('| about:');
-
-        // extract department from contributor (e.g., "Harini (CSE)" → name: "Harini", dept: "CSE")
-        const contribStr = (contrib || '').trim() || 'A student';
-        const deptMatch  = contribStr.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-        const contribName = deptMatch ? deptMatch[1].trim() : contribStr;
-        const department  = deptMatch ? deptMatch[2].trim() : 'Unknown';
-
-        quotes.push({
-          quote: qPart.replace(/["""]/g, '').trim(),
-          author:      aPart.trim() || 'Unknown',
-          contributor: contribName,
-          department:  department,
-          about:       (ab || '').trim()
-        });
-      }
+    // 3. Fetch each file
+    for (const file of mdFiles) {
+      const raw = await fetch(file.download_url).then(r => r.text());
+      const q = parseMarkdownQuote(raw);
+      if (q) quotes.push(q);
     }
 
     buildDots();
     buildDirectoryIndex();
-    // pull every shared reaction key into memory so the UI is warm on load
-   
-  } catch(e) {
-    document.getElementById('qText').textContent = 'Could not load quotes — check your connection.';
+
+  } catch (e) {
     console.error(e);
+    document.getElementById('qText').textContent =
+      'Could not load quotes.';
   }
+}
+function parseMarkdownQuote(md) {
+  const match = md.match(/---([\s\S]*?)---/);
+  if (!match) return null;
+
+  const lines = match[1].split('\n');
+  const data = {};
+
+  lines.forEach(l => {
+    const [k, ...v] = l.split(':');
+    if (k && v.length) data[k.trim()] = v.join(':').trim();
+  });
+
+  return {
+    quote: data.quote || '',
+    author: data.author || 'Unknown',
+    contributor: data.contributor || 'A student',
+    department: data.department || 'Unknown',
+    about: data.about || ''
+  };
 }
 
 /* ══════════════════════════════════════════════
@@ -1423,9 +1453,32 @@ async function loadState() {
 let dirIndex     = { authors: {}, contributors: {}, departments: {} }; // name → [quoteIdx, …]
 let dirTab       = 'authors';   // current tab
 let dirExpanded  = null;        // currently expanded row key (or null)
+document.querySelectorAll('.quick-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
 
-/* ── build index once after quotes are loaded ── */
-function buildDirectoryIndex() {
+    // 1. Open directory panel
+    openDir();
+
+    // 2. Activate correct directory tab pill
+    document.querySelectorAll('.dir-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+
+    // 3. Update directory state
+    dirTab = tab;
+    dirExpanded = null;
+    document.getElementById('dirSearch').value = '';
+    renderDirList();
+
+    // 4. Visual state for topbar buttons
+    document.querySelectorAll('.quick-tab').forEach(b => {
+      b.classList.toggle('active', b === btn);
+    });
+  });
+});
+
+  function buildDirectoryIndex() {
   dirIndex = { authors: {}, contributors: {}, departments: {} };
   quotes.forEach((q, i) => {
     const a = q.author;
@@ -1438,9 +1491,11 @@ function buildDirectoryIndex() {
 }
 
 /* ── open / close ── */
-document.getElementById('dirToggle').addEventListener('click', () => {
-  openDir();
-});
+const dirToggle = document.getElementById('dirToggle');
+if (dirToggle) {
+  dirToggle.addEventListener('click', openDir);
+}
+
 document.getElementById('dirClose').addEventListener('click', closeDir);
 document.getElementById('dirBackdrop').addEventListener('click', closeDir);
 
@@ -1449,7 +1504,6 @@ function openDir() {
   document.getElementById('dirBackdrop').classList.add('show');
   renderDirList();                          // refresh list each time it opens
   document.getElementById('dirSearch').value = '';
-  document.getElementById('dirSearch').focus();
 }
 function closeDir() {
   document.getElementById('dirPanel').classList.remove('open');
@@ -1597,7 +1651,17 @@ function escHtml(s) {
 /* ══════════════════════════════════════════════
    AUTO-ADVANCE (3 s)
    ══════════════════════════════════════════════ */
-setInterval(() => go(1), 3000);
+setInterval(() => go(1), 30000);
+
+  function fitQuoteText(el, maxHeight, maxFont = 64, minFont = 32) {
+  let size = maxFont;
+  el.style.fontSize = size + 'px';
+
+  while (el.scrollHeight > maxHeight && size > minFont) {
+    size -= 2;
+    el.style.fontSize = size + 'px';
+  }
+  }
 async function shareAsImage() {
   try {
     const q = quotes[idx];
@@ -1605,6 +1669,18 @@ async function shareAsImage() {
     // Fill share card
     document.getElementById('sc-quote').textContent =
       q.quote;
+    const quoteEl = document.getElementById('sc-quote');
+quoteEl.textContent = q.quote;
+
+/* reset size before fitting */
+quoteEl.style.fontSize = '64px';
+quoteEl.style.lineHeight = '1.45';
+
+/* let layout settle */
+await new Promise(r => requestAnimationFrame(r));
+
+/* dynamically shrink if needed */
+fitQuoteText(quoteEl, 600);
 
     document.getElementById('sc-author').textContent =
       `${q.author}`;
