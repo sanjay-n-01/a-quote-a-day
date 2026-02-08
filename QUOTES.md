@@ -10,5 +10,5 @@
 > "Life doesn’t give us purpose. We give life purpose." — Barry Allen (Flash)
 > — added by Barry (Pacman) (Cyber Security) | about: It means meaning isn’t handed to you by fate — you create it through your choices and actions.
 
-> "The more you fear something happening, the more likely it is to occur. In other words, Anything that can go wrong, will go wrong" — Murphy's Law 
-> — added by Cath (CSE) | about: Fear and overthinking can increase mistakes, making what we dread more likely to happen. Calm preparation and adaptability turn possible failures into learning opportunities.
+> "The more you fear something happening, the more likely it is to occur." — Murphy's Law 
+> — added by Cath (CSE) | about: Anything that can go wrong, will go wrong. Fear and overthinking can increase mistakes, making what we dread more likely to happen. Calm preparation and adaptability turn possible failures into learning opportunities.
