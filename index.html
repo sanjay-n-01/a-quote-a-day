@@ -1177,41 +1177,42 @@ body.no-blur *::after {
 @media (min-width: 900px) {
 
   .stage {
-    padding-top: 32px;
-    padding-bottom: 32px;
+    padding-top: 24px;
+    padding-bottom: 24px;
   }
 
   .card-wrap {
-    max-height: calc(100dvh - 140px); 
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
   .card {
-    max-height: calc(100dvh - 180px);
-    overflow: hidden; /* IMPORTANT */
-    padding: 48px 52px 40px;
+    max-height: none;
+    overflow: visible;
+    padding: 44px 48px 36px;
   }
 
   .q-text {
-    font-size: clamp(20px, 2.6vw, 34px);
+    font-size: clamp(18px, 2.2vw, 30px);
     line-height: 1.45;
   }
-.q-author {
-    margin-top: 18px;
+
+  .q-author {
+    margin-top: 16px;
   }
 
   .q-contrib {
-    margin-top: 10px;
+    margin-top: 8px;
   }
 
   .q-about {
-    margin-top: 8px;
-    font-size: 15px;
-    max-height: 3.2em;
-    overflow: hidden;
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.4;
   }
 }
+
 
 </style>
 </head>
