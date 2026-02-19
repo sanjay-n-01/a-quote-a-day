@@ -1,0 +1,12 @@
+---
+quote: I seek to learn and adopt all facets of humanity! Some desire love! Others family! Only then did I realize the truth...the core of humanity... is conflict. They fight. Steal. Kill. This is humanity in its purest form!
+author: Adam
+source: "NieR: Automata"
+contributor: Lyqorrr (DK)
+department: Cyber Security
+tags:
+  - progress
+  - conflict
+  - change
+about: It resonates with my belief that conflict is fundamental to humanity and often acts as the driving force behind progress, innovation, and societal change. There isn't an example greater than the two world wars for this.
+---
