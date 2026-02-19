@@ -1,5 +1,5 @@
 ---
-quote: "When you're in the shit up to your neck, there's nothing left to do but sing.".
+quote: When you're in the shit up to your neck, there's nothing left to do but sing.
 author: Samuel Beckett.
 what_it_means_to_me: The quote means that when you’re totally overwhelmed and stuck—up to your neck in trouble—there’s no practical way out, so the only thing left to do is keep your spirit alive, like singing, and face the situation with whatever expression or resilience you can muster.
 contributor: Dheeksha
