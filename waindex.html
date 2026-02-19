@@ -305,23 +305,26 @@ body::after {
 }
 
 .hero-byline {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.hero-byline strong {
-  color: var(--text);
-  font-weight: 400;
-}
-
-/* Hero student name — big & proud */
-.hero-student-name {
   font-family: var(--serif);
-  font-size: clamp(22px, 3vw, 32px);
+  font-size: clamp(22px, 3.2vw, 34px);
   font-weight: 900;
   color: var(--text);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
   margin-top: 18px;
+}
+.hero-byline strong {
+  font-weight: 900;
+}
+
+/* Hero student name — secondary below author */
+.hero-student-name {
+  font-family: var(--serif);
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  margin-top: 6px;
 }
 .hero-student-dept {
   font-family: var(--mono);
@@ -414,14 +417,25 @@ body::after {
   margin-bottom: 12px;
 }
 
-/* ── PROMINENT STUDENT NAME ON CARD ── */
-.q-card-student-name {
+/* ── QUOTED AUTHOR — big, prominent ── */
+.q-card-author {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: var(--text);
   letter-spacing: 0.2px;
   line-height: 1.1;
+}
+
+/* ── STUDENT CONTRIBUTOR — still visible, secondary ── */
+.q-card-student-name {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+  margin-top: 4px;
 }
 .q-card-student-dept {
   font-family: var(--mono);
@@ -429,17 +443,8 @@ body::after {
   letter-spacing: 2.5px;
   text-transform: uppercase;
   color: var(--gold);
-  margin-top: 2px;
-  margin-bottom: 6px;
-}
-
-.q-card-author {
-  font-family: var(--sans);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  margin-top: 6px;
+  margin-top: 3px;
+  margin-bottom: 0;
 }
 
 .q-card-meta {
@@ -1129,9 +1134,9 @@ function makeTodayHero(q, idx) {
     <div class="hero-kicker">✦ Featured Quote of the Day</div>
     <div class="hero-quote-text">"${escHtml(q.quote)}"</div>
     <div class="hero-byline">— <strong>${escHtml(q.author)}</strong></div>
-    ${q.about ? `<div class="hero-about">${escHtml(q.about)}</div>` : ''}
     <div class="hero-student-name">${escHtml(q.contributor)}</div>
     <div class="hero-student-dept">${escHtml(q.department || '')}</div>
+    ${q.about ? `<div class="hero-about">${escHtml(q.about)}</div>` : ''}
   `;
   div.addEventListener('click', () => openModal(q, 1));
   div.style.cursor = 'pointer';
@@ -1145,9 +1150,9 @@ function makeQCard(q, displayIdx) {
     <div class="q-card-num">No. ${displayIdx + 1}</div>
     <div class="q-card-text">"${escHtml(q.quote)}"</div>
     <div class="q-card-rule"></div>
+    <div class="q-card-author">— ${escHtml(q.author)}</div>
     <div class="q-card-student-name">${escHtml(q.contributor)}</div>
     <div class="q-card-student-dept">${escHtml(q.department || '')}</div>
-    <div class="q-card-author">— ${escHtml(q.author)}</div>
     <div class="q-card-meta">${q.dateStr !== 'Unknown' ? formatDateFull(q.dateStr) : ''}</div>
     ${q.about ? `<div class="q-card-about">${escHtml(q.about)}</div>` : ''}
   `;
@@ -1286,9 +1291,9 @@ function openModal(q, num) {
   _currentShareQuote = q;
   document.getElementById('mKicker').textContent   = `Quote #${num} · ${formatDateFull(q.dateStr)}`;
   document.getElementById('mHeadline').textContent = `"${q.quote}"`;
-  document.getElementById('mInitial').textContent  = q.contributor[0] || '?';
-  document.getElementById('mAuthor').textContent   = q.contributor;
-  document.getElementById('mContrib').textContent  = `${q.department ? q.department + ' · ' : ''}Quoted author: ${q.author}`;
+  document.getElementById('mInitial').textContent  = q.author[0] || '?';
+  document.getElementById('mAuthor').textContent   = q.author;
+  document.getElementById('mContrib').textContent  = `Contributed by ${q.contributor}${q.department ? ` · ${q.department}` : ''}`;
 
   const aboutWrap = document.getElementById('mAboutWrap');
   if (q.about) {
