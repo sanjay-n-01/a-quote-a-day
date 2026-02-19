@@ -1,7 +1,7 @@
 ---
 quote: I seek to learn and adopt all facets of humanity! Some desire love! Others family! Only then did I realize the truth...the core of humanity... is conflict. They fight. Steal. Kill. This is humanity in its purest form!
 author: Adam
-source: "NieR: Automata"
+source: 'NieR: Automata'
 contributor: Lyqorrr (DK)
 department: Cyber Security
 tags:
