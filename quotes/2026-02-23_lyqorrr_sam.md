@@ -7,6 +7,6 @@ department: Cyber Security
 tags:
   - mortality
   - life
-  - death
+  - persistence
 about: This quote values persistence and care in an impermanent world, even when survival itself feels temporary, which I think is poignant, in a 'bitter-sweet' way.
 ---
