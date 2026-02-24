@@ -1,0 +1,12 @@
+---
+quote: Nothing lasts forever. Not even the world. But we gotta keep it going as long as we can, right? Patch the holes, change the parts, all that. So we can say we had a good run. That we lived.
+author: Sam
+source: 'Death Stranding'
+contributor: Lyqorrr (DK)
+department: Cyber Security
+tags:
+  - mortality
+  - life
+  - persistence
+about: This quote values persistence and care in an impermanent world, even when survival itself feels temporary, which I think is poignant, in a 'bitter-sweet' way.
+---
