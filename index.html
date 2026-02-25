@@ -1390,7 +1390,10 @@ function renderDirList() {
   container.innerHTML = '';
   const map   = _dirIndex[_dirTab];
   const query = document.getElementById('dirSearch').value.trim().toLowerCase();
-  let names   = Object.keys(map).sort((a, b) => a.localeCompare(b));
+let names = Object.keys(map).sort((a, b) => {
+  return map[b].length - map[a].length || a.localeCompare(b);
+});
+  
   if (query) names = names.filter(n => n.toLowerCase().includes(query));
 
   if (!names.length) {
